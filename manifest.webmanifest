@@ -1,0 +1,19 @@
+{
+  "name": "Lézarde – maisons fissurées",
+  "short_name": "Lézarde",
+  "description": "Ta maison se fissure ? Lézarde surveille les arrêtés catastrophe naturelle sécheresse de ta commune, compte les jours pour déclarer et prépare tes courriers.",
+  "lang": "fr",
+  "id": "/lezarde/",
+  "start_url": "/lezarde/",
+  "scope": "/lezarde/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f1ea",
+  "theme_color": "#15161b",
+  "categories": ["utilities", "lifestyle"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
