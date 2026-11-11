@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "17 5 * * *"   # tous les jours vers 6h-7h (heure de Paris)
   workflow_dispatch:         # bouton « Run workflow » pour lancer à la main
+    inputs:
+      backfill:
+        description: "Relire tout le Journal officiel depuis 2024 (long, une seule fois)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -11,16 +16,20 @@ permissions:
 jobs:
   maj:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Lire les arrêtés CatNat du Journal officiel
+        continue-on-error: true   # si le JO est indisponible, on garde quand même Géorisques
+        run: python scripts/jo_catnat.py ${{ inputs.backfill && '--backfill' || '' }}
       - name: Télécharger GASPAR et reconstruire les données
         run: python scripts/build_data.py
       - name: Publier si quelque chose a changé
         run: |
           git config user.name "lezarde-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/secheresse.json
-          git diff --cached --quiet || (git commit -m "Données Géorisques du $(date +%F)" && git push)
+          git add data/
+          git diff --cached --quiet || (git commit -m "Données du $(date +%F)" && git push)
