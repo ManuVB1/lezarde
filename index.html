@@ -152,7 +152,7 @@ a{color:var(--clay)}
 
 <nav>
   <div class="logo"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f39a4b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2l-4 7 5 4-4 9"/></svg></i>lézarde</div>
-  <span class="pill">Bêta · Loiret</span>
+  <span class="pill">Bêta</span>
 </nav>
 
 <header class="hero">
@@ -286,7 +286,7 @@ function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');set
 let DATA=null, INDEX=[], current=null;
 fetch('data/secheresse.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{
   DATA=d; INDEX=Object.entries(d.communes).map(([code,[nom]])=>({code,nom,n:norm(nom)}));
-  $('meta').textContent=(d.demo?'Démo : quelques communes autour d\'Orléans · ':'')+'Données Géorisques du '+fr(d.maj);
+  $('meta').textContent=(d.demo?'Démo : quelques communes autour d\'Orléans · ':'')+'Géorisques + Journal officiel · mis à jour le '+fr(d.maj);
   const last=store.get('lz_commune'); if(last&&d.communes[last]) pick(last,false);
 }).catch(()=>{$('meta').textContent='Données indisponibles pour le moment.';});
 
@@ -296,9 +296,9 @@ $('q').addEventListener('input',()=>{
   const v=norm($('q').value); const ul=$('sugg'); ul.innerHTML=''; act=-1;
   if(v.length<2||!INDEX.length) return;
   const hits=INDEX.filter(c=>c.n.startsWith(v)).concat(INDEX.filter(c=>!c.n.startsWith(v)&&c.n.includes(v))).slice(0,6);
-  if(!hits.length){ul.innerHTML='<li style="cursor:default"><span>Aucun arrêté sécheresse connu pour « '+$('q').value.replace(/</g,'')+' »</span></li>';
+  if(!hits.length){ul.innerHTML='<li style="cursor:default"><span>Commune introuvable : « '+$('q').value.replace(/</g,'')+' »</span></li>';
     ul.firstChild.onclick=()=>{ul.innerHTML='';showNone($('q').value);};return;}
-  hits.forEach(c=>{const li=document.createElement('li');li.innerHTML=`<span>${c.nom}</span><small>${c.code.slice(0,2)}</small>`;li.onclick=()=>pick(c.code);ul.append(li);});
+  hits.forEach(c=>{const li=document.createElement('li');li.innerHTML=`<span>${c.nom}</span><small>${c.code.startsWith('97')?c.code.slice(0,3):c.code.slice(0,2)}</small>`;li.onclick=()=>pick(c.code);ul.append(li);});
 });
 $('q').addEventListener('keydown',e=>{
   const items=[...$('sugg').children]; if(!items.length) return;
@@ -313,23 +313,32 @@ function ring(left,total){
 }
 
 function pick(code,scroll=true){
-  const [nom,arr]=DATA.communes[code]; current={code,nom,arr};
+  const [nom,arr,refus=[]]=DATA.communes[code]; current={code,nom,arr};
   $('sugg').innerHTML=''; $('q').value=nom; store.set('lz_commune',code);
   $('f_commune').value=$('f_commune').value||nom; $('a_com').value=nom;
-  const [deb,fin,jo]=arr[0]; const deadline=new Date(parse(jo).getTime()+30*DAY);
-  const left=Math.round((deadline-today())/DAY);
-  let html=`<div class="res-head"><div><div class="eyebrow">Ta commune</div><h3>${nom}</h3></div>`;
-  if(left>=0){
-    html+=`<span class="chip ${left<=7?'warn':'ok'}">Arrêté en cours</span></div>
-    <div class="ringbox">${ring(left,30)}<p>Un arrêté sécheresse est paru au JO le <b>${fr(jo)}</b>. Déclare ton sinistre à ton assureur avant le <b>${deadline.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</b>.</p></div>`;
-    $('jo').value=jo; setStage('b');
+  const head=(chip,cls)=>`<div class="res-head"><div><div class="eyebrow">Ta commune · ${code.slice(0,2)}</div><h3>${nom}</h3></div><span class="chip ${cls}">${chip}</span></div>`;
+  const last=arr[0], rej=refus[0];
+  const daysLeft=(j,n)=>Math.round((parse(j).getTime()+n*DAY-today())/DAY);
+  const dl=(j,n)=>new Date(parse(j).getTime()+n*DAY).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  let html;
+  if(rej && (!last||rej[2]>last[2]) && daysLeft(rej[2],61)>=0){
+    const l=daysLeft(rej[2],61);
+    html=head('Demande rejetée','bad')+`<div class="ringbox">${ring(l,61)}<p>La demande de ta commune pour la période ${frs(rej[0])} – ${frs(rej[1])} a été <b>rejetée</b> (JO du ${fr(rej[2])}). Un recours est possible jusqu'au <b>${dl(rej[2],61)}</b> environ : vois vite avec ta mairie.</p></div>`;
+    $('jor').value=rej[2]; setStage('c');
+  } else if(last && daysLeft(last[2],30)>=0){
+    const l=daysLeft(last[2],30);
+    html=head('Arrêté en cours',l<=7?'warn':'ok')+`<div class="ringbox">${ring(l,30)}<p>Un arrêté sécheresse est paru au JO le <b>${fr(last[2])}</b>. Déclare ton sinistre à ton assureur avant le <b>${dl(last[2],30)}</b>.</p></div>`;
+    $('jo').value=last[2]; setStage('b');
+  } else if(last){
+    const yrs=Math.floor((today()-parse(last[2]))/DAY/365.25);
+    html=head("Pas d'arrêté récent",'neutral')+`<div class="last">Dernier arrêté sécheresse : <b>JO du ${fr(last[2])}</b>, pour la période ${frs(last[0])} – ${frs(last[1])}${yrs>=1?` (il y a ${yrs} an${yrs>1?'s':''})`:''}.<br><span style="color:var(--muted);font-size:14px">Des fissures récentes ? Signale-les à ta mairie : c'est elle qui demande la reconnaissance.</span></div>`;
+    setStage('a');
   } else {
-    const yrs=Math.floor((today()-parse(jo))/DAY/365.25);
-    html+=`<span class="chip neutral">Pas d'arrêté récent</span></div>
-    <div class="last">Dernier arrêté sécheresse : <b>JO du ${fr(jo)}</b>, pour la période ${frs(deb)} – ${frs(fin)}${yrs>=1?` (il y a ${yrs} an${yrs>1?'s':''})`:''}.<br><span style="color:var(--muted);font-size:14px">Des fissures récentes ? Signale-les à ta mairie : c'est elle qui demande la reconnaissance.</span></div>`;
+    html=head('Aucun arrêté connu','neutral')+`<div class="last">Aucun arrêté sécheresse n'a jamais été publié pour ${nom}${rej?` (dernière demande rejetée au JO du ${fr(rej[2])})`:''}. Si tu as des fissures, signale-les à ta mairie : c'est elle qui demande la reconnaissance.</div>`;
     setStage('a');
   }
-  html+=`<details><summary>Historique (${arr.length} arrêté${arr.length>1?'s':''} depuis ${arr[arr.length-1][0].slice(0,4)})</summary><ul class="timeline">${arr.map(([d,f,j])=>`<li><b>${frs(d)} – ${frs(f)}</b><br>publié au JO le ${fr(j)}</li>`).join('')}</ul></details>`;
+  const hist=arr.map(x=>[...x,'R']).concat(refus.map(x=>[...x,'X'])).sort((a,b)=>b[2].localeCompare(a[2]));
+  if(hist.length) html+=`<details><summary>Historique (${hist.length} décision${hist.length>1?'s':''})</summary><ul class="timeline">${hist.map(([d,f,j,s])=>`<li><b>${frs(d)} – ${frs(f)}</b>${s==='X'?' <span style="color:var(--red);font-weight:600">· rejetée</span>':''}<br>JO du ${fr(j)}</li>`).join('')}</ul></details>`;
   const r=$('result'); r.innerHTML=html; r.classList.remove('hidden','fade'); void r.offsetWidth; r.classList.add('fade');
   if(scroll) r.scrollIntoView({behavior:'smooth',block:'start'});
   renderLetter();
