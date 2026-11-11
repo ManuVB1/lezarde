@@ -68,14 +68,42 @@ def main():
     if n < 1000:  # garde-fou : on n'écrase pas les données si le fichier source est cassé
         sys.exit(f"Seulement {n} arrêtés trouvés : fichier source suspect, mise à jour annulée.")
 
+    # ----- 2e source : Journal officiel (scripts/jo_catnat.py) + toutes les communes -----
+    for v in communes.values():
+        v.append([])  # [nom, arrêtés reconnus, demandes rejetées]
+    n_jo = 0
+    try:
+        req = urllib.request.Request("https://geo.api.gouv.fr/communes?fields=nom,code&format=json",
+                                     headers={"User-Agent": "lezarde-bot/1.0"})
+        for c in json.load(urllib.request.urlopen(req, timeout=120)):
+            communes.setdefault(c["code"], [c["nom"], [], []])
+    except Exception as e:
+        print("Liste des communes indisponible :", e)
+    jo_path = os.path.join(os.path.dirname(OUT), "jo_catnat.json")
+    if os.path.exists(jo_path):
+        def d(s):
+            return datetime.date.fromisoformat(s)
+        for code, deb, fin, jo, statut, nor in json.load(open(jo_path, encoding="utf-8"))["lignes"]:
+            if code not in communes:
+                continue
+            liste = communes[code][1] if statut == "R" else communes[code][2]
+            doublon = any(x[0][:7] == deb[:7] and x[1][:7] == fin[:7] and abs((d(x[2]) - d(jo)).days) <= 15 for x in liste)
+            if not doublon:
+                liste.append([deb, fin, jo])
+                n_jo += 1
+
     for v in communes.values():
         v[1].sort(key=lambda x: x[2], reverse=True)
+        v[2].sort(key=lambda x: x[2], reverse=True)
+        if not v[2]:
+            v.pop()
 
     out = {
         "maj": datetime.date.today().isoformat(),
-        "source": "Géorisques – base GASPAR (arrêtés CatNat sécheresse)",
+        "source": "Géorisques (GASPAR) + Journal officiel (DILA)",
         "communes": dict(sorted(communes.items())),
     }
+    print(f"{n_jo} arrêtés ajoutés depuis le Journal officiel")
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
     print(f"{len(communes)} communes, {n} arrêtés sécheresse -> {OUT}")
