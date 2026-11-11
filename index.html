@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lézarde – maisons fissurées, sécheresse et CatNat</title>
+<meta name="description" content="Ta maison se fissure ? Lézarde surveille ta commune, compte les jours qu'il te reste pour déclarer et prépare tes courriers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f1ea; --ink:#15161b; --ink2:#3b3f4a; --muted:#7a7f8c; --line:rgba(21,22,27,.08);
+  --card:#ffffff; --clay:#d9542b; --amber:#f39a4b; --clay-soft:#fbe8de;
+  --green:#147a5c; --green-soft:#dff3ea; --yellow:#b7791f; --yellow-soft:#fdf1d8; --red:#c62a1e; --red-soft:#fde3df;
+  --r:22px; --shadow:0 1px 2px rgba(21,22,27,.04),0 8px 24px -12px rgba(21,22,27,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:16px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:-20% -10% auto auto;width:70vw;height:70vw;max-width:620px;max-height:620px;background:radial-gradient(circle,rgba(243,154,75,.28),transparent 65%);filter:blur(10px);z-index:-1;pointer-events:none}
+.wrap{max-width:680px;margin:0 auto;padding:14px 16px 120px}
+.disp{font-family:"Bricolage Grotesque",Inter,sans-serif;letter-spacing:-.02em}
+
+/* nav */
+nav{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 14px}
+.logo{display:flex;align-items:center;gap:8px;font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;letter-spacing:-.03em}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--ink);display:grid;place-items:center}
+.pill{font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;background:rgba(21,22,27,.06);color:var(--ink2)}
+
+/* hero */
+.hero{background:var(--ink);color:#fff;border-radius:28px;padding:26px 20px 20px;position:relative;overflow:hidden;box-shadow:0 20px 50px -20px rgba(21,22,27,.45)}
+.hero::after{content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,var(--clay),transparent 70%);opacity:.55}
+.hero svg.crack{position:absolute;right:18px;top:18px;opacity:.9;z-index:1}
+.hero h1{font-size:clamp(30px,8vw,42px);line-height:1.02;margin:0 0 10px;font-weight:800;position:relative;z-index:1;max-width:14ch}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--amber),var(--clay));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin:0 0 18px;color:rgba(255,255,255,.72);position:relative;z-index:1;max-width:36ch}
+.search{position:relative;z-index:2}
+.search input{width:100%;font:inherit;font-size:17px;padding:16px 16px 16px 48px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;backdrop-filter:blur(8px)}
+.search input::placeholder{color:rgba(255,255,255,.5)}
+.search input:focus{outline:none;border-color:var(--amber);background:rgba(255,255,255,.12)}
+.search svg{position:absolute;left:16px;top:27px;transform:translateY(-50%);opacity:.7;z-index:3;pointer-events:none}
+.sugg{list-style:none;margin:8px 0 0;padding:6px;background:#fff;border-radius:16px;color:var(--ink);box-shadow:var(--shadow)}
+.sugg:empty{display:none}
+.sugg li{padding:12px 12px;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.sugg li:hover,.sugg li.act{background:var(--bg)}
+.sugg small{color:var(--muted)}
+.meta{font-size:12px;color:rgba(255,255,255,.5);margin-top:10px;position:relative;z-index:1}
+
+/* cards */
+.card{background:var(--card);border-radius:var(--r);padding:20px;margin-top:14px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.card h2{font-family:"Bricolage Grotesque";font-size:22px;letter-spacing:-.02em;margin:0 0 2px;font-weight:700}
+.eyebrow{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--clay);margin-bottom:4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+.fade{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* result */
+.res-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.res-head h3{font-family:"Bricolage Grotesque";font-size:26px;margin:0;letter-spacing:-.02em}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:99px;white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.ok{background:var(--green-soft);color:var(--green)} .chip.warn{background:var(--yellow-soft);color:var(--yellow)}
+.chip.bad{background:var(--red-soft);color:var(--red)} .chip.neutral{background:rgba(21,22,27,.06);color:var(--ink2)}
+.ringbox{display:flex;align-items:center;gap:18px;margin-top:16px;padding:16px;border-radius:18px;background:var(--bg)}
+.ring{position:relative;width:112px;height:112px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-family:"Bricolage Grotesque";font-weight:800;font-size:34px;line-height:1}
+.ring .num small{display:block;font-family:Inter;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0;margin-top:2px}
+.ringbox p{margin:0;font-size:15px}
+.ringbox b{font-weight:700}
+.last{margin-top:14px;padding:14px;border-radius:16px;background:var(--bg);font-size:15px}
+.timeline{list-style:none;padding:0;margin:10px 0 0;border-left:2px solid var(--line);margin-left:6px}
+.timeline li{position:relative;padding:4px 0 10px 16px;font-size:14px;color:var(--ink2)}
+.timeline li::before{content:"";position:absolute;left:-6px;top:10px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--clay)}
+.timeline b{color:var(--ink)}
+details summary{cursor:pointer;font-weight:600;font-size:14px;margin-top:12px;color:var(--ink2);list-style:none}
+details summary::after{content:" ↓"}
+details[open] summary::after{content:" ↑"}
+
+/* bento */
+.bento{display:grid;grid-template-columns:1.2fr 1fr;grid-template-rows:auto auto;gap:10px;margin-top:14px}
+.bento div{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.bento div:first-child{grid-row:span 2;background:linear-gradient(150deg,var(--clay),var(--amber));color:#fff;border:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:160px}
+.bento b{display:block;font-family:"Bricolage Grotesque";font-size:30px;line-height:1;letter-spacing:-.03em;margin-bottom:6px}
+.bento div:first-child b{font-size:54px}
+.bento span{font-size:13px;color:var(--muted);line-height:1.35;display:block}
+.bento div:first-child span{color:rgba(255,255,255,.9);font-size:14px}
+
+/* segmented */
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px;gap:4px;margin:4px 0 14px}
+.seg button{flex:1;border:none;background:transparent;font:inherit;font-size:13.5px;font-weight:600;padding:10px 6px;border-radius:11px;cursor:pointer;color:var(--muted);transition:.2s}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(21,22,27,.12)}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:var(--ink2)}
+input,textarea,select{width:100%;font:inherit;padding:13px 14px;border:1px solid rgba(21,22,27,.12);border-radius:14px;background:#fff;color:var(--ink);transition:border-color .2s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--clay);box-shadow:0 0 0 4px rgba(217,84,43,.12)}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.row{grid-template-columns:1fr}}
+.stage-text{font-size:15px;color:var(--ink2);margin:0}
+
+/* checklist */
+.prog{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.bar{flex:1;height:8px;background:var(--bg);border-radius:99px;overflow:hidden}
+.bar div{height:100%;width:0;background:linear-gradient(90deg,var(--green),#2bb582);border-radius:99px;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+.prog span{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+ul.todo{list-style:none;padding:0;margin:6px 0 0}
+ul.todo li{display:flex;gap:12px;align-items:flex-start;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer;font-size:15px}
+ul.todo li:last-child{border-bottom:none}
+.ck{width:24px;height:24px;flex:none;border-radius:50%;border:2px solid rgba(21,22,27,.18);display:grid;place-items:center;transition:.2s;margin-top:-1px}
+.ck svg{opacity:0;transition:.2s}
+li.done .ck{background:var(--green);border-color:var(--green)} li.done .ck svg{opacity:1}
+li.done span{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(21,22,27,.25)}
+
+/* letters */
+.tabs{display:flex;gap:6px;margin-top:16px}
+.tabs button{flex:1;border:1px solid rgba(21,22,27,.12);background:#fff;color:var(--ink2);font:inherit;font-weight:600;font-size:14px;padding:11px;border-radius:12px;cursor:pointer}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.paper{position:relative;margin-top:12px;background:#fffdf9;border-radius:16px;border:1px solid var(--line);padding:18px 16px;box-shadow:inset 0 0 0 6px #fff}
+.paper pre{white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.55;margin:0;max-height:380px;overflow:auto;color:var(--ink2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;background:var(--ink);color:#fff;font:inherit;font-weight:600;font-size:15px;padding:14px 18px;border-radius:14px;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.clay{background:linear-gradient(135deg,var(--clay),var(--amber))}
+.btn.full{width:100%;margin-top:12px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;transition:.3s;pointer-events:none;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* pros */
+.pros{display:grid;gap:10px}
+.pro{display:flex;gap:14px;align-items:flex-start;padding:14px;border-radius:18px;background:var(--bg)}
+.pro .ic{width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;flex:none;box-shadow:var(--shadow)}
+.pro b{display:block;font-size:15.5px}
+.pro span{font-size:14px;color:var(--muted)}
+.pro.star{background:var(--clay-soft)}
+.pro .tag{display:inline-block;font-size:11px;font-weight:700;color:var(--clay);background:#fff;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
+
+/* alert sheet */
+.dock{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,var(--bg) 35%);z-index:10}
+.dock .btn{width:100%;max-width:648px;display:flex;margin:0 auto;box-shadow:0 10px 30px -10px rgba(217,84,43,.6)}
+.sheet-bg{position:fixed;inset:0;background:rgba(21,22,27,.4);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:.25s;z-index:30}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:680px;margin:0 auto;background:#fff;border-radius:26px 26px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:31}
+.sheet .grab{width:40px;height:5px;border-radius:99px;background:rgba(21,22,27,.15);margin:0 auto 14px}
+.open .sheet-bg{opacity:1;pointer-events:auto} .open .sheet{transform:none}
+footer{font-size:12px;color:var(--muted);margin-top:24px;text-align:center;line-height:1.6}
+footer a{color:var(--ink2)}
+.hidden{display:none!important}
+a{color:var(--clay)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+  <div class="logo"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f39a4b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2l-4 7 5 4-4 9"/></svg></i>lézarde</div>
+  <span class="pill">Bêta · Loiret</span>
+</nav>
+
+<header class="hero">
+  <svg class="crack" width="54" height="80" viewBox="0 0 54 80" fill="none" stroke="#f39a4b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M30 2l-9 18 13 10-12 16 10 12-8 20"/><path d="M34 30l12 6" opacity=".6"/><path d="M22 46l-12 4" opacity=".6"/></svg>
+  <h1 class="disp">Ta maison se fissure ? <em>On veille pour toi.</em></h1>
+  <p>Arrêtés catastrophe naturelle, délais, courriers : tout au même endroit.</p>
+  <div class="search">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" placeholder="Ta commune (ex : Ingré)" autocomplete="off" aria-label="Rechercher ta commune">
+    <ul class="sugg" id="sugg"></ul>
+  </div>
+  <div class="meta" id="meta">Chargement des données…</div>
+</header>
+
+<section class="card fade hidden" id="result"></section>
+
+<div class="bento">
+  <div><b class="disp">30 j</b><span>pour déclarer à ton assureur après la parution de l'arrêté au Journal officiel</span></div>
+  <div><b class="disp">24 mois</b><span>pour que ta mairie demande la reconnaissance</span></div>
+  <div><b class="disp">1 520 €</b><span>de franchise légale en sécheresse</span></div>
+</div>
+
+<section class="card">
+  <div class="eyebrow">Étape par étape</div>
+  <h2>Où en es-tu ?</h2>
+  <p class="sub">On adapte tes actions et tes courriers.</p>
+  <div class="seg" id="seg">
+    <button data-s="a" class="on">Pas d'arrêté</button>
+    <button data-s="b">Arrêté paru</button>
+    <button data-s="c">Refusé</button>
+  </div>
+  <div id="sa"><p class="stage-text">La reconnaissance se demande <b>commune par commune</b>. Sans signalements d'habitants, la mairie n'a rien à transmettre : écris-lui, et pousse tes voisins à le faire aussi.</p></div>
+  <div id="sb" class="hidden">
+    <label for="jo">Date de parution de l'arrêté au Journal officiel</label>
+    <input type="date" id="jo">
+    <div id="countB"></div>
+  </div>
+  <div id="sc" class="hidden">
+    <p class="stage-text">Un refus se conteste devant le <b>tribunal administratif</b>, en principe dans les <b>2 mois</b> après sa publication. Ta mairie peut porter le recours. Regroupez-vous entre voisins touchés.</p>
+    <label for="jor">Date de publication du refus</label>
+    <input type="date" id="jor">
+    <div id="countC"></div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="eyebrow">Ta to-do</div>
+  <h2>Ce qu'il faut faire</h2>
+  <div class="prog"><div class="bar"><div id="bar"></div></div><span id="progTxt">0/6</span></div>
+  <ul class="todo" id="todo"></ul>
+</section>
+
+<section class="card">
+  <div class="eyebrow">Prêts à envoyer</div>
+  <h2>Tes courriers</h2>
+  <p class="sub">Remplis une fois, on rédige pour toi. À envoyer en recommandé avec accusé de réception.</p>
+  <div class="row">
+    <div><label>Nom et prénom</label><input id="f_nom" placeholder="Jean Dupont" autocomplete="name"></div>
+    <div><label>Commune</label><input id="f_commune" placeholder="Ingré"></div>
+  </div>
+  <label>Adresse du logement</label><input id="f_adr" placeholder="12 rue des Lilas, 45140 Ingré" autocomplete="street-address">
+  <div class="row">
+    <div><label>Assureur habitation</label><input id="f_ass" placeholder="Nom de l'assureur"></div>
+    <div><label>N° de contrat</label><input id="f_contrat" placeholder="123456789"></div>
+  </div>
+  <div class="row">
+    <div><label>Fissures constatées le</label><input type="date" id="f_date"></div>
+    <div><label>Logement</label><select id="f_type"><option>maison individuelle</option><option>maison mitoyenne</option><option>appartement en rez-de-chaussée</option></select></div>
+  </div>
+  <label>Ce que tu constates</label>
+  <textarea id="f_desc" placeholder="Ex : fissures en escalier sur la façade sud, porte du garage qui frotte, fissure au-dessus de la fenêtre du salon…"></textarea>
+  <div class="tabs" id="ltabs"><button data-l="mairie" class="on">Mairie</button><button data-l="assureur">Assureur</button></div>
+  <div class="paper"><pre id="letter"></pre></div>
+  <button class="btn full" id="copy"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copier la lettre</button>
+</section>
+
+<section class="card">
+  <div class="eyebrow">Être accompagné</div>
+  <h2>Les bons pros, au bon moment</h2>
+  <p class="sub">Selon où en est ton dossier.</p>
+  <div class="pros">
+    <div class="pro star"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d9542b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5S5 10 5 14.5a7 7 0 0014 0C19 10 12 2.5 12 2.5z"/></svg></div><div><b>Recherche de fuite <span class="tag">avant l'expertise</span></b><span>Une fuite près des fondations aggrave les mouvements du sol, et l'expert de l'assureur le vérifiera. Mieux vaut l'écarter ou la prouver avant son passage.</span></div></div>
+    <div class="pro"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15161b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></div><div><b>Expert d'assuré</b><span>Il défend <i>tes</i> intérêts face à l'expert de l'assureur : offre trop basse, refus, vétusté contestée.</span></div></div>
+    <div class="pro"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15161b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M5 20l3-8 4 3 3-6 4 11"/></svg></div><div><b>Étude de sol</b><span>Elle établit le lien entre la sécheresse et les dégâts quand c'est contesté.</span></div></div>
+  </div>
+  <button class="btn clay full" id="callme">Être rappelé gratuitement</button>
+</section>
+
+<footer>
+  Données : <a href="https://www.georisques.gouv.fr/" target="_blank" rel="noopener">Géorisques</a> (base GASPAR), mises à jour automatiquement.<br>
+  Informations générales, pas un conseil juridique. Vérifie toujours les délais de ton contrat.
+</footer>
+</div>
+
+<div class="dock"><button class="btn clay" id="alertBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg>M'alerter dès qu'un arrêté paraît</button></div>
+
+<div id="sheetWrap">
+  <div class="sheet-bg" id="sheetBg"></div>
+  <div class="sheet" role="dialog" aria-label="Alerte">
+    <div class="grab"></div>
+    <div id="sheetForm">
+      <div class="eyebrow">Alerte gratuite</div>
+      <h2 class="disp" style="margin:0 0 4px;font-size:24px">On te prévient le jour J</h2>
+      <p class="sub">Dès qu'un arrêté sécheresse paraît pour ta commune, tu reçois un message avec ton compte à rebours de 30 jours.</p>
+      <label>Commune</label><input id="a_com" placeholder="Ingré">
+      <label>E-mail ou téléphone</label><input id="a_contact" placeholder="toi@exemple.fr" inputmode="email">
+      <button class="btn clay full" id="a_ok">Activer mon alerte</button>
+    </div>
+    <div id="sheetDone" class="hidden" style="text-align:center;padding:10px 0 4px">
+      <div style="font-size:42px">✓</div>
+      <h2 class="disp" style="margin:4px 0">C'est noté</h2>
+      <p class="sub" id="doneTxt"></p>
+      <button class="btn full" id="a_close">Fermer</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const DAY=86400000;
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d;};
+const parse=s=>new Date(s+'T00:00:00');
+const fr=(s,o={day:'numeric',month:'long',year:'numeric'})=>parse(s).toLocaleDateString('fr-FR',o);
+const frs=s=>parse(s).toLocaleDateString('fr-FR',{month:'short',year:'numeric'});
+const norm=s=>(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[-'’]/g,' ').replace(/\s+/g,' ').trim();
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200);}
+
+/* ---------- data ---------- */
+let DATA=null, INDEX=[], current=null;
+fetch('data/secheresse.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{
+  DATA=d; INDEX=Object.entries(d.communes).map(([code,[nom]])=>({code,nom,n:norm(nom)}));
+  $('meta').textContent=(d.demo?'Démo : quelques communes autour d\'Orléans · ':'')+'Données Géorisques du '+fr(d.maj);
+  const last=store.get('lz_commune'); if(last&&d.communes[last]) pick(last,false);
+}).catch(()=>{$('meta').textContent='Données indisponibles pour le moment.';});
+
+/* ---------- search ---------- */
+let act=-1;
+$('q').addEventListener('input',()=>{
+  const v=norm($('q').value); const ul=$('sugg'); ul.innerHTML=''; act=-1;
+  if(v.length<2||!INDEX.length) return;
+  const hits=INDEX.filter(c=>c.n.startsWith(v)).concat(INDEX.filter(c=>!c.n.startsWith(v)&&c.n.includes(v))).slice(0,6);
+  if(!hits.length){ul.innerHTML='<li style="cursor:default"><span>Aucun arrêté sécheresse connu pour « '+$('q').value.replace(/</g,'')+' »</span></li>';
+    ul.firstChild.onclick=()=>{ul.innerHTML='';showNone($('q').value);};return;}
+  hits.forEach(c=>{const li=document.createElement('li');li.innerHTML=`<span>${c.nom}</span><small>${c.code.slice(0,2)}</small>`;li.onclick=()=>pick(c.code);ul.append(li);});
+});
+$('q').addEventListener('keydown',e=>{
+  const items=[...$('sugg').children]; if(!items.length) return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();act=(act+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;items.forEach((x,i)=>x.classList.toggle('act',i===act));}
+  if(e.key==='Enter'){e.preventDefault();(items[act>=0?act:0]).click();}
+});
+
+function ring(left,total){
+  const C=2*Math.PI*48, pct=Math.max(0,Math.min(1,left/total));
+  const col=left<=7?'var(--yellow)':'var(--green)';
+  return `<div class="ring"><svg width="112" height="112"><circle cx="56" cy="56" r="48" stroke="rgba(21,22,27,.08)" stroke-width="10" fill="none"/><circle cx="56" cy="56" r="48" stroke="${col}" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}" style="transition:stroke-dashoffset .8s"/></svg><div class="num">${left}<small>jour${left>1?'s':''}</small></div></div>`;
+}
+
+function pick(code,scroll=true){
+  const [nom,arr]=DATA.communes[code]; current={code,nom,arr};
+  $('sugg').innerHTML=''; $('q').value=nom; store.set('lz_commune',code);
+  $('f_commune').value=$('f_commune').value||nom; $('a_com').value=nom;
+  const [deb,fin,jo]=arr[0]; const deadline=new Date(parse(jo).getTime()+30*DAY);
+  const left=Math.round((deadline-today())/DAY);
+  let html=`<div class="res-head"><div><div class="eyebrow">Ta commune</div><h3>${nom}</h3></div>`;
+  if(left>=0){
+    html+=`<span class="chip ${left<=7?'warn':'ok'}">Arrêté en cours</span></div>
+    <div class="ringbox">${ring(left,30)}<p>Un arrêté sécheresse est paru au JO le <b>${fr(jo)}</b>. Déclare ton sinistre à ton assureur avant le <b>${deadline.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</b>.</p></div>`;
+    $('jo').value=jo; setStage('b');
+  } else {
+    const yrs=Math.floor((today()-parse(jo))/DAY/365.25);
+    html+=`<span class="chip neutral">Pas d'arrêté récent</span></div>
+    <div class="last">Dernier arrêté sécheresse : <b>JO du ${fr(jo)}</b>, pour la période ${frs(deb)} – ${frs(fin)}${yrs>=1?` (il y a ${yrs} an${yrs>1?'s':''})`:''}.<br><span style="color:var(--muted);font-size:14px">Des fissures récentes ? Signale-les à ta mairie : c'est elle qui demande la reconnaissance.</span></div>`;
+    setStage('a');
+  }
+  html+=`<details><summary>Historique (${arr.length} arrêté${arr.length>1?'s':''} depuis ${arr[arr.length-1][0].slice(0,4)})</summary><ul class="timeline">${arr.map(([d,f,j])=>`<li><b>${frs(d)} – ${frs(f)}</b><br>publié au JO le ${fr(j)}</li>`).join('')}</ul></details>`;
+  const r=$('result'); r.innerHTML=html; r.classList.remove('hidden','fade'); void r.offsetWidth; r.classList.add('fade');
+  if(scroll) r.scrollIntoView({behavior:'smooth',block:'start'});
+  renderLetter();
+}
+function showNone(txt){
+  current=null; const r=$('result');
+  r.innerHTML=`<div class="res-head"><div><div class="eyebrow">Ta commune</div><h3>${txt.replace(/</g,'')}</h3></div><span class="chip neutral">Aucun arrêté connu</span></div><div class="last">Aucun arrêté sécheresse enregistré pour cette commune${DATA&&DATA.demo?' dans la démo (seules quelques communes autour d\'Orléans y sont)':''}. Si tu as des fissures, c'est le moment de le signaler à ta mairie.</div>`;
+  r.classList.remove('hidden'); setStage('a'); r.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ---------- stages & checklist ---------- */
+let stage='a', letterType='mairie', checked=store.get('lz_checked')||{};
+const TODOS={
+ a:[['a1',"Photographier chaque fissure, datée, avec un mètre pour l'échelle"],['a2',"Poser des témoins (jauges ou repères datés) pour suivre l'évolution"],['a3',"Écrire à la mairie pour signaler les dégâts"],['a4',"Prévenir ton assureur dès maintenant, à titre conservatoire"],['a5',"Inciter tes voisins touchés à écrire aussi : plus il y a de dossiers, plus la demande pèse"],['a6',"Garder factures et devis (travaux, relogement éventuel)"]],
+ b:[['b1',"Déclarer le sinistre à l'assureur dans les 30 jours, en recommandé avec accusé de réception"],['b2',"Joindre photos datées, copie du courrier à la mairie et description des dégâts"],['b3',"Ne rien réparer ni jeter avant le passage de l'expert"],['b4',"Faire écarter une éventuelle fuite près des fondations avant l'expertise"],['b5',"Noter la date de passage de l'expert et demander son rapport"],['b6',"Offre trop basse ? Solliciter un expert d'assuré"]],
+ c:[['c1',"Récupérer la décision de refus et sa date de publication"],['c2',"Contacter la mairie : elle peut former un recours"],['c3',"Fédérer les sinistrés de la commune (collectif, association)"],['c4',"Continuer à documenter l'évolution des fissures"],['c5',"Vérifier si une aide ou un fonds de soutien existe"]]
+};
+function setStage(s){
+  stage=s; document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+  ['a','b','c'].forEach(x=>$('s'+x).classList.toggle('hidden',x!==s));
+  letterType=s==='a'?'mairie':'assureur'; document.querySelectorAll('#ltabs button').forEach(b=>b.classList.toggle('on',b.dataset.l===letterType));
+  countdown('countB','jo',30,"Déclare à ton assureur"); renderTodo(); renderLetter();
+}
+function renderTodo(){
+  const ul=$('todo'); ul.innerHTML=''; const list=TODOS[stage];
+  list.forEach(([id,t])=>{const li=document.createElement('li'); if(checked[id]) li.classList.add('done');
+    li.innerHTML=`<div class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></div><span>${t}</span>`;
+    li.onclick=()=>{checked[id]=!checked[id];store.set('lz_checked',checked);renderTodo();}; ul.append(li);});
+  const n=list.filter(([id])=>checked[id]).length; $('bar').style.width=(100*n/list.length)+'%'; $('progTxt').textContent=`${n}/${list.length}`;
+}
+function countdown(box,inp,days,label){
+  const v=$(inp).value, b=$(box); if(!v){b.innerHTML='';return;}
+  const dl=new Date(parse(v).getTime()+days*DAY), left=Math.round((dl-today())/DAY);
+  const d=dl.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  b.innerHTML = left>=0
+    ? `<div class="ringbox">${ring(left,days)}<p>${label} au plus tard le <b>${d}</b>.</p></div>`
+    : `<div class="ringbox" style="background:var(--red-soft)"><div class="ring"><div class="num" style="color:var(--red)">!</div></div><p>Délai dépassé depuis le <b>${d}</b>. Tout n'est pas forcément perdu : contacte vite ton assureur ou un expert d'assuré.</p></div>`;
+}
+
+/* ---------- letters ---------- */
+const val=id=>$(id).value.trim();
+const dfr=id=>$(id).value?parse($(id).value).toLocaleDateString('fr-FR'):'[date]';
+function renderLetter(){
+  const nom=val('f_nom')||'[Nom Prénom]',adr=val('f_adr')||'[Adresse du logement]',com=val('f_commune')||'[Commune]',ass=val('f_ass')||'[Assureur]',ctr=val('f_contrat')||'[N° de contrat]',type=$('f_type').value,
+  desc=val('f_desc')||'[Description précise : emplacement, longueur et largeur des fissures, portes ou fenêtres qui coincent…]',d=dfr('f_date'),now=new Date().toLocaleDateString('fr-FR'),jo=$('jo').value?dfr('jo'):'[date de parution au JO]';
+  $('letter').textContent = letterType==='mairie' ?
+`${nom}
+${adr}
+
+À l'attention de Madame / Monsieur le Maire
+Mairie de ${com}
+
+Le ${now}
+
+Objet : Signalement de dommages liés à la sécheresse – demande de reconnaissance de l'état de catastrophe naturelle
+Lettre recommandée avec accusé de réception
+
+Madame, Monsieur le Maire,
+
+Mon habitation (${type}), située ${adr}, présente depuis le ${d} des désordres que j'attribue à la sécheresse et à la réhydratation des sols :
+
+${desc}
+
+Je vous remercie d'enregistrer mon signalement et d'engager, ou de compléter, la demande communale de reconnaissance de l'état de catastrophe naturelle pour la période concernée. Vous trouverez ci-joint des photographies datées.
+
+Je vous remercie de me tenir informé(e) des suites données et vous prie d'agréer, Madame, Monsieur le Maire, l'expression de mes salutations distinguées.
+
+${nom}
+
+PJ : photographies datées` :
+`${nom}
+${adr}
+
+${ass}
+Service sinistres
+
+Le ${now}
+
+Objet : Déclaration de sinistre – catastrophe naturelle sécheresse
+Contrat multirisque habitation n° ${ctr}
+Lettre recommandée avec accusé de réception
+
+Madame, Monsieur,
+
+La commune de ${com} a été reconnue en état de catastrophe naturelle au titre de la sécheresse par arrêté publié au Journal officiel le ${jo}.
+
+Je vous déclare les dommages subis par mon habitation (${type}), située ${adr}, constatés depuis le ${d} :
+
+${desc}
+
+Je vous remercie d'ouvrir un dossier au titre de la garantie catastrophe naturelle et de m'indiquer la date de passage de votre expert. Vous trouverez ci-joint des photographies datées et la copie de mon signalement à la mairie.
+
+Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+
+${nom}
+
+PJ : photographies datées, copie du courrier à la mairie`;
+}
+
+/* ---------- events ---------- */
+document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>setStage(b.dataset.s));
+document.querySelectorAll('#ltabs button').forEach(b=>b.onclick=()=>{letterType=b.dataset.l;document.querySelectorAll('#ltabs button').forEach(x=>x.classList.toggle('on',x===b));renderLetter();});
+$('jo').oninput=()=>{countdown('countB','jo',30,"Déclare à ton assureur");renderLetter();};
+$('jor').oninput=()=>countdown('countC','jor',61,"Recours à déposer");
+['f_nom','f_commune','f_adr','f_ass','f_contrat','f_date','f_type','f_desc'].forEach(id=>$(id).addEventListener('input',renderLetter));
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('letter').textContent);toast('Lettre copiée ✓');}catch(e){toast('Sélectionne le texte pour le copier');}};
+$('callme').onclick=()=>toast('Bêta : la mise en relation arrive bientôt');
+function openSheet(){$('sheetWrap').classList.add('open');$('sheetForm').classList.remove('hidden');$('sheetDone').classList.add('hidden');}
+function closeSheet(){$('sheetWrap').classList.remove('open');}
+$('alertBtn').onclick=openSheet; $('sheetBg').onclick=closeSheet; $('a_close').onclick=closeSheet;
+$('a_ok').onclick=()=>{const c=val('a_com'),k=val('a_contact'); if(!c||!k){toast('Indique ta commune et ton contact');return;}
+  store.set('lz_alert',{c,k}); $('doneTxt').textContent=`Version bêta : ton inscription pour ${c} est gardée sur cet appareil. Les vraies alertes arrivent avec la mise en ligne.`;
+  $('sheetForm').classList.add('hidden');$('sheetDone').classList.remove('hidden');};
+
+setStage('a');
+</script>
+</body>
+</html>
