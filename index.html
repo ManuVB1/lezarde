@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lézarde – maisons fissurées, sécheresse et CatNat</title>
 <meta name="description" content="Ta maison se fissure ? Lézarde surveille ta commune, compte les jours qu'il te reste pour déclarer et prépare tes courriers.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#15161b">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -243,7 +247,7 @@ a{color:var(--clay)}
 
 <footer>
   Données : <a href="https://www.georisques.gouv.fr/" target="_blank" rel="noopener">Géorisques</a> (base GASPAR), mises à jour automatiquement.<br>
-  Informations générales, pas un conseil juridique. Vérifie toujours les délais de ton contrat.
+  Informations générales, pas un conseil juridique. Vérifie toujours les délais de ton contrat.<br><a href="confidentialite.html">Confidentialité</a>
 </footer>
 </div>
 
@@ -454,6 +458,7 @@ $('a_ok').onclick=()=>{const c=val('a_com'),k=val('a_contact'); if(!c||!k){toast
   $('sheetForm').classList.add('hidden');$('sheetDone').classList.remove('hidden');};
 
 setStage('a');
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 </script>
 </body>
 </html>
