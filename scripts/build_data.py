@@ -44,7 +44,7 @@ def main():
     dialect = csv.Sniffer().sniff(text[:5000], delimiters=";,\t")
     rows = csv.DictReader(io.StringIO(text), dialect=dialect)
 
-    c_insee = pick(rows.fieldnames, "cod_commune", "code_insee", "insee")
+    c_insee = pick(rows.fieldnames, "code_commune", "cod_commune", "code_insee", "insee")
     c_nom = pick(rows.fieldnames, "lib_commune", "libelle_commune", "commune")
     c_risk = pick(rows.fieldnames, "lib_risque", "libelle_risque")
     c_deb = pick(rows.fieldnames, "dat_deb", "date_debut")
