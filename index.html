@@ -147,6 +147,11 @@ li.done span{color:var(--muted);text-decoration:line-through;text-decoration-col
 .open .sheet-bg{opacity:1;pointer-events:auto} .open .sheet{transform:none}
 footer{font-size:12px;color:var(--muted);margin-top:24px;text-align:center;line-height:1.6}
 footer a{color:var(--ink2)}
+.src{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+.srclist{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:10px}
+.srclist li{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.035)}
+.srclist a{font-weight:600}
+.srclist span{font-size:13px;color:var(--muted)}
 .hidden{display:none!important}
 a{color:var(--clay)}
 </style>
@@ -245,9 +250,21 @@ a{color:var(--clay)}
   <button class="btn clay full" id="callme">Être rappelé gratuitement</button>
 </section>
 
+<section class="card" id="sources">
+  <div class="eyebrow">Sources officielles</div>
+  <h2>D'où viennent les infos</h2>
+  <p class="sub">Lézarde est une appli indépendante : elle n'est ni un service de l'État, ni liée à une administration ou à un assureur. Elle reprend des informations publiques, à vérifier à la source :</p>
+  <ul class="srclist">
+    <li><a href="https://www.legifrance.gouv.fr/" target="_blank" rel="noopener">Légifrance – Journal officiel</a><span>Les arrêtés de reconnaissance (ou de refus) de l'état de catastrophe naturelle.</span></li>
+    <li><a href="https://echanges.dila.gouv.fr/OPENDATA/JORF/" target="_blank" rel="noopener">DILA – données ouvertes du Journal officiel</a><span>Fichiers utilisés pour la mise à jour quotidienne.</span></li>
+    <li><a href="https://www.georisques.gouv.fr/" target="_blank" rel="noopener">Géorisques – base CatNat (GASPAR)</a><span>Historique des arrêtés par commune (ministère de la Transition écologique).</span></li>
+    <li><a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F3078" target="_blank" rel="noopener">Service-Public.fr – indemnisation catastrophe naturelle</a><span>Démarches, délais et franchises officiels.</span></li>
+    <li><a href="https://geo.api.gouv.fr/" target="_blank" rel="noopener">geo.api.gouv.fr</a><span>Liste et codes des communes.</span></li>
+  </ul>
+</section>
+
 <footer>
-  Données : <a href="https://www.georisques.gouv.fr/" target="_blank" rel="noopener">Géorisques</a> (base GASPAR), mises à jour automatiquement.<br>
-  Informations générales, pas un conseil juridique. Vérifie toujours les délais de ton contrat.<br><a href="confidentialite.html">Confidentialité</a>
+  Informations générales, pas un conseil juridique. Vérifie toujours les délais de ton contrat.<br><a href="#sources">Sources officielles</a> · <a href="confidentialite.html">Confidentialité</a>
 </footer>
 </div>
 
@@ -316,6 +333,7 @@ function ring(left,total){
   return `<div class="ring"><svg width="112" height="112"><circle cx="56" cy="56" r="48" stroke="rgba(21,22,27,.08)" stroke-width="10" fill="none"/><circle cx="56" cy="56" r="48" stroke="${col}" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}" style="transition:stroke-dashoffset .8s"/></svg><div class="num">${left}<small>jour${left>1?'s':''}</small></div></div>`;
 }
 
+const SRC=`<div class="src">Source officielle : arrêtés interministériels publiés au <a href="https://www.legifrance.gouv.fr/" target="_blank" rel="noopener">Journal officiel (Légifrance)</a> et base CatNat de <a href="https://www.georisques.gouv.fr/" target="_blank" rel="noopener">Géorisques</a>. Vérifie l'arrêté à la source avant d'agir.</div>`;
 function pick(code,scroll=true){
   const [nom,arr,refus=[]]=DATA.communes[code]; current={code,nom,arr};
   $('sugg').innerHTML=''; $('q').value=nom; store.set('lz_commune',code);
@@ -343,13 +361,14 @@ function pick(code,scroll=true){
   }
   const hist=arr.map(x=>[...x,'R']).concat(refus.map(x=>[...x,'X'])).sort((a,b)=>b[2].localeCompare(a[2]));
   if(hist.length) html+=`<details><summary>Historique (${hist.length} décision${hist.length>1?'s':''})</summary><ul class="timeline">${hist.map(([d,f,j,s])=>`<li><b>${frs(d)} – ${frs(f)}</b>${s==='X'?' <span style="color:var(--red);font-weight:600">· rejetée</span>':''}<br>JO du ${fr(j)}</li>`).join('')}</ul></details>`;
+  html+=SRC;
   const r=$('result'); r.innerHTML=html; r.classList.remove('hidden','fade'); void r.offsetWidth; r.classList.add('fade');
   if(scroll) r.scrollIntoView({behavior:'smooth',block:'start'});
   renderLetter();
 }
 function showNone(txt){
   current=null; const r=$('result');
-  r.innerHTML=`<div class="res-head"><div><div class="eyebrow">Ta commune</div><h3>${txt.replace(/</g,'')}</h3></div><span class="chip neutral">Aucun arrêté connu</span></div><div class="last">Aucun arrêté sécheresse enregistré pour cette commune${DATA&&DATA.demo?' dans la démo (seules quelques communes autour d\'Orléans y sont)':''}. Si tu as des fissures, c'est le moment de le signaler à ta mairie.</div>`;
+  r.innerHTML=`<div class="res-head"><div><div class="eyebrow">Ta commune</div><h3>${txt.replace(/</g,'')}</h3></div><span class="chip neutral">Aucun arrêté connu</span></div><div class="last">Aucun arrêté sécheresse enregistré pour cette commune${DATA&&DATA.demo?' dans la démo (seules quelques communes autour d\'Orléans y sont)':''}. Si tu as des fissures, c'est le moment de le signaler à ta mairie.</div>`+SRC;
   r.classList.remove('hidden'); setStage('a'); r.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
